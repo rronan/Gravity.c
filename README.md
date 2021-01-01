@@ -10,10 +10,10 @@ gcc gravity.c -o gravity -lglfw -framework OPENGL -framework GLUT -lGLEW -lncurs
 
 Commands:
 
-`e`: up
+`e` up
 
-`d`: down
+`d` down
 
-`f`: right
+`f` right
 
-`s`: left
+`s` left
