@@ -57,27 +57,27 @@ int readch() {
 }
 
 GLFWwindow* setupWindow() {
-	GLFWwindow* window;
-	if(!glfwInit()) {
-		fprintf( stderr, "Failed to initialize GLFW\n" );
-        return 0;
-	}
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	window = glfwCreateWindow( WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL );
-	if (!window) {
-		fprintf( stderr, "Failed to open GLFW window\n" );
-		glfwTerminate();
-        return 0;
-	}
-	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1);
+    GLFWwindow* window;
+    if(!glfwInit()) {
+        fprintf( stderr, "Failed to initialize GLFW\n" );
+    return 0;
+    }
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    window = glfwCreateWindow( WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL );
+    if (!window) {
+	fprintf( stderr, "Failed to open GLFW window\n" );
+	glfwTerminate();
+    return 0;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
     GLint framebufferWidth, framebufferHeight;
     glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
-	glViewport(0, 0, framebufferWidth, framebufferHeight);
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
-	// see https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
-	glOrtho(0.0, WIDTH, 0.0, HEIGHT, 0.0, 1.0);
+    glViewport(0, 0, framebufferWidth, framebufferHeight);
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity();
+    // see https://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml
+    glOrtho(0.0, WIDTH, 0.0, HEIGHT, 0.0, 1.0);
     return window;
 }
 
