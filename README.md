@@ -11,6 +11,9 @@ gcc gravity.c -o gravity -lglfw -framework OPENGL -framework GLUT -lGLEW -lncurs
 Commands:
 
 `e`: up
+
 `d`: down
+
 `f`: right
+
 `s`: left
