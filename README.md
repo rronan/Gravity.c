@@ -7,3 +7,10 @@ gcc gravity.c -o gravity -lglfw -framework OPENGL -framework GLUT -lGLEW -lncurs
 
 ./gravity
 ```
+
+Commands:
+
+`e`: up
+`d`: down
+`f`: right
+`s`: left
