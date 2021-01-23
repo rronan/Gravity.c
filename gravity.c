@@ -219,19 +219,19 @@ int main() {
     GLFWwindow* window = setupWindow();
     setSpace(&space);
     int i = 0;
-	while(!glfwWindowShouldClose(window)) {
-	    updatePhysics(&space);
-	    i--;
-	    if (i < 0) {
-	        if (space.ship.exists) controlPower(&space);
-	        drawSpace(window, &space);
-	        i = 1000;
-	    }
-	}
-	glfwTerminate();
-    close_keyboard();
-    return 1;
-}
+    while(!glfwWindowShouldClose(window)) {
+        updatePhysics(&space);
+        i--;
+        if (i < 0) {
+            if (space.ship.exists) controlPower(&space);
+            drawSpace(window, &space);
+            i = 1000;
+        }
+    }
+    glfwTerminate();
+        close_keyboard();
+        return 1;
+    }
 
 /* void setSpaceReal(struct Space* space){ */
 /*     // define earth */
