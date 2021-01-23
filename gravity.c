@@ -7,8 +7,8 @@
 
 int WIDTH = 828;
 int HEIGHT = 828;
-float G = 1e3;
-double DT = 1e-5;
+double G = 1e3;
+double DT = 10e-7;
 double POWER = 5e3;
 
 static struct termios initial_settings, new_settings;
@@ -90,6 +90,18 @@ struct Body {
     double radius;
 };
 
+struct Ship {
+    struct Body body;
+    double ax;
+    double ay;
+    int exists;
+} ship;
+
+struct Space {
+    struct Body bodies[3];
+    struct Ship ship;
+} space;
+
 void drawBody(struct Body body){
     glBegin(GL_POLYGON);
     for (int i = 0; i <= 20; i++) {
@@ -100,12 +112,6 @@ void drawBody(struct Body body){
     }
     glEnd();
 }
-
-struct Ship {
-    struct Body body;
-    double ax;
-    double ay;
-};
 
 void drawShip(struct Ship ship) {
     drawBody(ship.body);
@@ -121,136 +127,146 @@ void drawShip(struct Ship ship) {
     glEnd();
 }
 
-struct Space {
-    struct Body bodies[2];
-    struct Ship ship;
-};
 
-void drawSpace(GLFWwindow* window, struct Space space){
+void drawSpace(GLFWwindow* window, struct Space* space){
     glClear(GL_COLOR_BUFFER_BIT);
-    for (unsigned long i = 0; i < (sizeof(space.bodies)/sizeof(struct Body)); i++) {
-        drawBody(space.bodies[i]);
+    for (unsigned long i = 0; i < (sizeof(space->bodies)/sizeof(struct Body)); i++) {
+        drawBody(space->bodies[i]);
     };
-    drawShip(space.ship);
+    if (space->ship.exists == 1) drawShip(space->ship);
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
 
-struct Body applyGravitation(struct Body a, struct Body b) {
-    double px = pow(a.x - b.x, 2);
-    double py = pow(a.y - b.y, 2);
+void applyGravitation(struct Body* a, struct Body* b) {
+    double px = pow(a->x - b->x, 2);
+    double py = pow(a->y - b->y, 2);
     double pp = pow(px + py, 2);
-    a.vx = a.vx + DT * copysign(G * b.mass * px / pp, b.x - a.x);
-    a.vy = a.vy + DT * copysign(G * b.mass * py / pp, b.y - a.y);
-    return a;
+    a->vx = a->vx + DT * copysign(G * b->mass * px / pp, b->x - a->x);
+    a->vy = a->vy + DT * copysign(G * b->mass * py / pp, b->y - a->y);
 }
 
-struct Body updatePosition(struct Body a) {
-    a.x = a.x + DT * a.vx;
-    a.y = a.y + DT * a.vy;
-    return a;
-}
-
-struct Space controlPower(struct Space space) {
+void controlPower(struct Space* space) {
     if (kbhit() == 1) {
         switch (readch()) {
             case 'f':
-                space.ship.ax = 1;
+                space->ship.ax = 1;
                 printf("right\n");
                 break;
             case 's':
-                space.ship.ax = -1;
+                space->ship.ax = -1;
                 printf("left\n");
                 break;
             case 'e':
-                space.ship.ay = 1;
+                space->ship.ay = 1;
                 printf("up\n");
                 break;
             case 'd':
-                space.ship.ay = -1;
+                space->ship.ay = -1;
                 printf("down\n");
                 break;
         }
         fflush(stdout);
     } else {
-        space.ship.ax = 0;
-        space.ship.ay = 0;
+        space->ship.ax = 0;
+        space->ship.ay = 0;
     }
-    return space;
 }
 
-struct Space updatePhysics(struct Space space){
-    unsigned long nBodies = (sizeof(space.bodies)/sizeof(struct Body));
+void updatePosition(struct Body* a) {
+    a->x = a->x + DT * a->vx;
+    a->y = a->y + DT * a->vy;
+}
+
+void updatePhysics(struct Space* space){
+    unsigned long nBodies = (sizeof(space->bodies)/sizeof(struct Body));
     for (unsigned long i = 0; i < nBodies; i++) {
-        space.ship.body = applyGravitation(space.ship.body, space.bodies[i]);
+        if (space->ship.exists == 1) {
+            applyGravitation(&space->ship.body, &space->bodies[i]);
+        }
         for (unsigned long j = 0; j < nBodies; j++) {
             if (i != j) {
-                space.bodies[i] = applyGravitation(space.bodies[i], space.bodies[j]);
+                applyGravitation(&space->bodies[i], &space->bodies[j]);
             }
         }
-        space.bodies[i] = updatePosition(space.bodies[i]);
+        updatePosition(&space->bodies[i]);
     };
-    space.ship.body.vx = space.ship.body.vx + DT * space.ship.ax * POWER;
-    space.ship.body.vy = space.ship.body.vy + DT * space.ship.ay * POWER;
-    space.ship.body = updatePosition(space.ship.body);
-    return space;
+    if (space->ship.exists == 1) {
+        space->ship.body.vx = space->ship.body.vx + DT * space->ship.ax * POWER;
+        space->ship.body.vy = space->ship.body.vy + DT * space->ship.ay * POWER;
+        updatePosition(&space->ship.body);
+    }
 }
 
-struct Space setupSpace(void){
-    // define earth
-    struct Body earth;
-    earth.x = WIDTH / 2;
-    earth.y = HEIGHT / 2;
-    earth.vx = 0;
-    earth.vy = 0;
-    earth.mass = 1e4;
-    earth.radius = (3. / 4.) / 3.142 * pow(earth.mass, 1. / 3.);
 
-    // define moon
-    struct Body moon;
-    moon.x = WIDTH / 2;
-    moon.y = HEIGHT / 8;
-    moon.vx = -100;
-    moon.vy = 0;
-    moon.mass = 0.012 * earth.mass;
-    moon.radius = (3. / 4.) / 3.142 * pow(moon.mass, 1. / 3.);
-
-    // define ship
-    struct Ship ship;
-    ship.body.x = earth.x + 50;
-    ship.body.y = earth.y;
-    ship.body.vx = 0;
-    ship.body.vy = -400;
-    ship.body.mass = 0;
-    ship.body.radius = moon.radius / 2;
-    ship.ax = 0;
-    ship.ay = 0;
-
-    // define space
-    struct Space space;
-    space.bodies[0] = earth;
-    space.bodies[1] = moon;
-    space.ship = ship;
-
-    return space;
+void setSpace(struct Space* space){
+    const int nBodies = sizeof(space->bodies) / sizeof(struct Body);
+    for (int i = 0; i < nBodies; i++) {
+        space->bodies[i].x = WIDTH * (double)(i + 1) / (nBodies + 1);
+        space->bodies[i].y = HEIGHT / 2;
+        space->bodies[i].vx = 0;
+        double a = (int)(i - nBodies / 2);
+        space->bodies[i].vy = a * 40;
+        space->bodies[i].mass = 10e3;
+        space->bodies[i].radius = (3. / 4.) / 3.142 * pow(space->bodies[i].mass, 1. / 3.);
+    }
+    space->ship.exists=0;
 }
+
 
 int main() {
     init_keyboard();
     GLFWwindow* window = setupWindow();
-    struct Space space = setupSpace();
+    setSpace(&space);
     int i = 0;
 	while(!glfwWindowShouldClose(window)) {
-        space = updatePhysics(space);
+        updatePhysics(&space);
         i--;
         if (i < 0) {
-            space = controlPower(space);
-            drawSpace(window, space);
-            i = 100;
+            if (space.ship.exists) controlPower(&space);
+            drawSpace(window, &space);
+            i = 1000;
         }
-        usleep(1);
 	}
 	glfwTerminate();
     close_keyboard();
     return 1;
 }
+
+/* void setSpaceReal(struct Space* space){ */
+/*     // define earth */
+/*     struct Body earth; */
+/*     earth.x = WIDTH / 2; */
+/*     earth.y = HEIGHT / 2; */
+/*     earth.vx = 0; */
+/*     earth.vy = 0; */
+/*     earth.mass = 1e4; */
+/*     earth.radius = (3. / 4.) / 3.142 * pow(earth.mass, 1. / 3.); */
+/*     space->bodies[0] = earth; */
+
+/*     // define moon */
+/*     struct Body moon; */
+/*     moon.x = WIDTH / 2; */
+/*     moon.y = HEIGHT / 8; */
+/*     moon.vx = -100; */
+/*     moon.vy = 0; */
+/*     moon.mass = 0.012 * earth.mass; */
+/*     moon.radius = (3. / 4.) / 3.142 * pow(moon.mass, 1. / 3.); */
+/*     space->bodies[1] = moon; */
+
+/*     // define ship */
+/*     struct Body body; */
+/*     body.x = earth.x + 50; */
+/*     body.y = earth.y; */
+/*     body.vx = 0; */
+/*     body.vy = -400; */
+/*     body.mass = 0; */
+/*     body.radius = moon.radius / 2; */
+
+/*     ship.ax = 0; */
+/*     ship.ay = 0; */
+/*     ship.exists = 1; */
+/*     ship.body = body; */
+
+/*     space->ship = ship; */
+/* } */
