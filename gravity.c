@@ -220,13 +220,13 @@ int main() {
     setSpace(&space);
     int i = 0;
 	while(!glfwWindowShouldClose(window)) {
-        updatePhysics(&space);
-        i--;
-        if (i < 0) {
-            if (space.ship.exists) controlPower(&space);
-            drawSpace(window, &space);
-            i = 1000;
-        }
+	    updatePhysics(&space);
+	    i--;
+	    if (i < 0) {
+	        if (space.ship.exists) controlPower(&space);
+	        drawSpace(window, &space);
+	        i = 1000;
+	    }
 	}
 	glfwTerminate();
     close_keyboard();
