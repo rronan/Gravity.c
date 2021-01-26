@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <termios.h>
 
+#define NBODIES 3
+
 int WIDTH = 828;
 int HEIGHT = 828;
 double G = 1e3;
@@ -60,14 +62,14 @@ GLFWwindow* setupWindow() {
     GLFWwindow* window;
     if(!glfwInit()) {
         fprintf( stderr, "Failed to initialize GLFW\n" );
-    return 0;
+        return 0;
     }
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     window = glfwCreateWindow( WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL );
     if (!window) {
-	fprintf( stderr, "Failed to open GLFW window\n" );
-	glfwTerminate();
-    return 0;
+        fprintf( stderr, "Failed to open GLFW window\n" );
+        glfwTerminate();
+        return 0;
     }
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
@@ -98,44 +100,55 @@ struct Ship {
 } ship;
 
 struct Space {
-    struct Body bodies[3];
+    struct Body** bodies;
     struct Ship ship;
 } space;
 
-void drawBody(struct Body body){
+void drawBody(const struct Body* body){
     glBegin(GL_POLYGON);
     for (int i = 0; i <= 20; i++) {
         glVertex2f(
-            body.x + (body.radius * cos(i * 2 * 3.142 / 20)),
-            body.y + (body.radius * sin(i * 2 * 3.142 / 20))
+            body->x + (body->radius * cos(i * 2 * 3.142 / 20)),
+            body->y + (body->radius * sin(i * 2 * 3.142 / 20))
         );
     }
     glEnd();
 }
 
-void drawShip(struct Ship ship) {
-    drawBody(ship.body);
+void drawShip(const struct Ship* ship) {
+    drawBody(&ship->body);
     glBegin(GL_POLYGON);
-    glVertex2f(ship.body.x - ship.body.radius * ship.ax, ship.body.y);
-    glVertex2f(ship.body.x - 16 * ship.body.radius * ship.ax, ship.body.y -  8 * ship.body.radius);
-    glVertex2f(ship.body.x - 16 * ship.body.radius * ship.ax, ship.body.y +  8 * ship.body.radius);
+    glVertex2f(ship->body.x - ship->body.radius * ship->ax, ship->body.y);
+    glVertex2f(ship->body.x - 16 * ship->body.radius * ship->ax, ship->body.y -  8 * ship->body.radius);
+    glVertex2f(ship->body.x - 16 * ship->body.radius * ship->ax, ship->body.y +  8 * ship->body.radius);
     glEnd();
     glBegin(GL_POLYGON);
-    glVertex2f(ship.body.x, ship.body.y - ship.body.radius * ship.ay);
-    glVertex2f(ship.body.x - 8 * ship.body.radius, ship.body.y - 16 * ship.body.radius * ship.ay);
-    glVertex2f(ship.body.x + 8 * ship.body.radius, ship.body.y - 16 * ship.body.radius * ship.ay);
+    glVertex2f(ship->body.x, ship->body.y - ship->body.radius * ship->ay);
+    glVertex2f(ship->body.x - 8 * ship->body.radius, ship->body.y - 16 * ship->body.radius * ship->ay);
+    glVertex2f(ship->body.x + 8 * ship->body.radius, ship->body.y - 16 * ship->body.radius * ship->ay);
     glEnd();
 }
 
+void printSpace(const struct Space* space){
+    for (int i = 0; i < NBODIES; i++) {
+        printf("%f\n", space->bodies[i]->x);
+        printf("%f\n", space->bodies[i]->y);
+    }
+}
 
-void drawSpace(GLFWwindow* window, struct Space* space){
+
+void drawSpace(GLFWwindow* window, const struct Space* space){
     glClear(GL_COLOR_BUFFER_BIT);
-    for (unsigned long i = 0; i < (sizeof(space->bodies)/sizeof(struct Body)); i++) {
+    for (unsigned long i = 0; i < NBODIES; i++) {
+        printf("%f\n", space->bodies[i]->x);
+        printf("%f\n", space->bodies[i]->radius);
         drawBody(space->bodies[i]);
     };
-    if (space->ship.exists == 1) drawShip(space->ship);
+    if (space->ship.exists == 1) drawShip(&space->ship);
     glfwSwapBuffers(window);
+    printf("foo\n");
     glfwPollEvents();
+    printf("bar\n");
 }
 
 void applyGravitation(struct Body* a, struct Body* b) {
@@ -179,17 +192,16 @@ void updatePosition(struct Body* a) {
 }
 
 void updatePhysics(struct Space* space){
-    unsigned long nBodies = (sizeof(space->bodies)/sizeof(struct Body));
-    for (unsigned long i = 0; i < nBodies; i++) {
+    for (unsigned long i = 0; i < NBODIES; i++) {
         if (space->ship.exists == 1) {
-            applyGravitation(&space->ship.body, &space->bodies[i]);
+            applyGravitation(&space->ship.body, space->bodies[i]);
         }
-        for (unsigned long j = 0; j < nBodies; j++) {
+        for (unsigned long j = 0; j < NBODIES; j++) {
             if (i != j) {
-                applyGravitation(&space->bodies[i], &space->bodies[j]);
+                applyGravitation(space->bodies[i], space->bodies[j]);
             }
         }
-        updatePosition(&space->bodies[i]);
+        updatePosition(space->bodies[i]);
     };
     if (space->ship.exists == 1) {
         space->ship.body.vx = space->ship.body.vx + DT * space->ship.ax * POWER;
@@ -198,20 +210,24 @@ void updatePhysics(struct Space* space){
     }
 }
 
+#include <stdlib.h>
 
 void setSpace(struct Space* space){
-    const int nBodies = sizeof(space->bodies) / sizeof(struct Body);
-    for (int i = 0; i < nBodies; i++) {
-        space->bodies[i].x = WIDTH * (double)(i + 1) / (nBodies + 1);
-        space->bodies[i].y = HEIGHT / 2;
-        space->bodies[i].vx = 0;
-        double a = (int)(i - nBodies / 2);
-        space->bodies[i].vy = a * 40;
-        space->bodies[i].mass = 10e3;
-        space->bodies[i].radius = (3. / 4.) / 3.142 * pow(space->bodies[i].mass, 1. / 3.);
+    space->bodies = malloc(NBODIES * sizeof(struct Body*));
+    for (int i = 0; i < NBODIES; i++) {
+        double a = (int)(i - NBODIES / 2);
+        space->bodies[i] = malloc(sizeof(struct Body*));
+        space->bodies[i]->x = WIDTH * (double)(i + 1) / (NBODIES + 1);
+        space->bodies[i]->y = HEIGHT / 2;
+        space->bodies[i]->vx = 0;
+        space->bodies[i]->vy = a * 40;
+        space->bodies[i]->mass = 10e3;
+        space->bodies[i]->radius = (3. / 4.) / 3.142 * pow(10e3, 1. / 3.);
     }
     space->ship.exists=0;
 }
+
+
 
 
 int main() {
