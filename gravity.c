@@ -37,13 +37,10 @@ struct Body {
     double x;
     double y;
     double vx;
-    double vy;
-    double mass;
-    int radius;
 };
 
 struct Space {
-    struct Body** bodies;
+    struct Body* bodies[NBODIES];
 } space;
 
 void printSpace(struct Space* space){
@@ -54,9 +51,6 @@ void printSpace(struct Space* space){
         printf("%f\n", space->bodies[i]->x);
         printf("%f\n", space->bodies[i]->y);
         printf("%f\n", space->bodies[i]->vx);
-        printf("%f\n", space->bodies[i]->vy);
-        printf("%f\n", space->bodies[i]->mass);
-        printf("%d\n", space->bodies[i]->radius);
         printf("***\n");
     }
     printf("----------\n");
@@ -71,27 +65,26 @@ void drawSpace(GLFWwindow* window){
 }
 
 void setSpace(struct Space* space){
-    space->bodies = malloc(NBODIES * sizeof(struct Body*));
-    printf("%p\n", space->bodies);
+    printf("%ld\n", sizeof(struct Body*));
+    printf("%ld\n", sizeof(long));
+    printf("assignment starts\n");
     for (int i = 0; i < NBODIES; i++) {
-        double a = (i - (double)NBODIES / 2);
-        space->bodies[i] = malloc(sizeof(struct Body*));
-        printf("%p\n", space->bodies[i]);
-        space->bodies[i]->x = WIDTH * (double)(i + 1) / (NBODIES + 1);
-        space->bodies[i]->y = HEIGHT / 2;
+        /* space->bodies[i] = malloc(sizeof(struct Body*)); */
+        printf("%ld\n", sizeof(space->bodies[i]));
+        space->bodies[i] = malloc(sizeof(struct Body));
+        space->bodies[i]->x = i;
+        space->bodies[i]->y = 0;
         space->bodies[i]->vx = 0;
-        space->bodies[i]->vy = a * 40;
-        space->bodies[i]->mass = 10e3;
-        space->bodies[i]->radius = (int)((3. / 4.) / 3.142 * pow(10e3, 1. / 3.));
     }
+    printf("assignment done\n");
 }
 
 int main() {
     GLFWwindow* window = setupWindow();
     setSpace(&space);
     while(!glfwWindowShouldClose(window)) {
-        printSpace(&space);
         drawSpace(window);
+        printSpace(&space);
         sleep(1);
     }
     glfwTerminate();

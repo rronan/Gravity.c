@@ -35,29 +35,14 @@ struct Body {
     double x;
     double y;
     double vx;
-    double vy;
-    double mass;
-    int radius;
 };
 
 struct Space {
     struct Body body;
 } space;
 
-void printSpace(struct Space* space){
-    printf("++++++++++\n");
-    printf("%f\n", space->body.x);
-    printf("%f\n", space->body.y);
-    printf("%f\n", space->body.vx);
-    printf("%f\n", space->body.vy);
-    printf("%f\n", space->body.mass);
-    printf("%d\n", space->body.radius);
-    printf("----------\n");
-}
-
-void drawSpace(GLFWwindow* window, struct Space* space){
+void drawSpace(GLFWwindow* window){
     glClear(GL_COLOR_BUFFER_BIT);
-    printSpace(space);
     glfwSwapBuffers(window);
     printf("foo\n");
     glfwPollEvents();
@@ -68,17 +53,14 @@ void setSpace(struct Space* space){
     space->body.x = WIDTH / 2;
     space->body.y = HEIGHT / 2;
     space->body.vx = 0;
-    space->body.vy = 0;
-    space->body.mass = 10e3;
-    space->body.radius = (int)((3. / 4.) / 3.142 * pow(10e3, 1. / 3.));
 }
 
 int main() {
     GLFWwindow* window = setupWindow();
     setSpace(&space);
     while(!glfwWindowShouldClose(window)) {
-        printSpace(&space);
-        drawSpace(window, &space);
+        printf("%f\n", space.body.x);
+        drawSpace(window);
         sleep(1);
     }
     glfwTerminate();
