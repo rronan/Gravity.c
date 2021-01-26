@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define NBODIES 35
-
 int WIDTH = 828;
 int HEIGHT = 828;
 
@@ -43,47 +41,36 @@ struct Body {
 };
 
 struct Space {
-    struct Body** bodies;
+    struct Body body;
 } space;
 
 void printSpace(struct Space* space){
     printf("++++++++++\n");
-    printf("%p\n", space->bodies);
-    for (int i = 0; i < NBODIES; i++) {
-        printf("%p\n", space->bodies[i]);
-        printf("%f\n", space->bodies[i]->x);
-        printf("%f\n", space->bodies[i]->y);
-        printf("%f\n", space->bodies[i]->vx);
-        printf("%f\n", space->bodies[i]->vy);
-        printf("%f\n", space->bodies[i]->mass);
-        printf("%d\n", space->bodies[i]->radius);
-        printf("***\n");
-    }
+    printf("%f\n", space->body.x);
+    printf("%f\n", space->body.y);
+    printf("%f\n", space->body.vx);
+    printf("%f\n", space->body.vy);
+    printf("%f\n", space->body.mass);
+    printf("%d\n", space->body.radius);
     printf("----------\n");
 }
 
-void drawSpace(GLFWwindow* window){
+void drawSpace(GLFWwindow* window, struct Space* space){
     glClear(GL_COLOR_BUFFER_BIT);
-    printf("foo\n");
+    printSpace(space);
     glfwSwapBuffers(window);
+    printf("foo\n");
     glfwPollEvents();
     printf("bar\n");
 }
 
 void setSpace(struct Space* space){
-    space->bodies = malloc(NBODIES * sizeof(struct Body*));
-    printf("%p\n", space->bodies);
-    for (int i = 0; i < NBODIES; i++) {
-        double a = (i - (double)NBODIES / 2);
-        space->bodies[i] = malloc(sizeof(struct Body*));
-        printf("%p\n", space->bodies[i]);
-        space->bodies[i]->x = WIDTH * (double)(i + 1) / (NBODIES + 1);
-        space->bodies[i]->y = HEIGHT / 2;
-        space->bodies[i]->vx = 0;
-        space->bodies[i]->vy = a * 40;
-        space->bodies[i]->mass = 10e3;
-        space->bodies[i]->radius = (int)((3. / 4.) / 3.142 * pow(10e3, 1. / 3.));
-    }
+    space->body.x = WIDTH / 2;
+    space->body.y = HEIGHT / 2;
+    space->body.vx = 0;
+    space->body.vy = 0;
+    space->body.mass = 10e3;
+    space->body.radius = (int)((3. / 4.) / 3.142 * pow(10e3, 1. / 3.));
 }
 
 int main() {
@@ -91,10 +78,10 @@ int main() {
     setSpace(&space);
     while(!glfwWindowShouldClose(window)) {
         printSpace(&space);
-        drawSpace(window);
+        drawSpace(window, &space);
         sleep(1);
     }
     glfwTerminate();
     return 1;
-}
+    }
 
