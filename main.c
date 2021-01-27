@@ -1,10 +1,3 @@
-#include <stdio.h>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <math.h>
-#include <unistd.h>
-#include <termios.h>
-#include <stdlib.h>
 #include "headers/command.h"
 #include "headers/graphic.h"
 #include "headers/physics.h"

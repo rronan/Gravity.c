@@ -3,9 +3,9 @@
 Simple 2D game - go from earth to moon's orbit
 
 ```
-gcc gravity.c -o gravity -lglfw -framework OPENGL -framework GLUT -lGLEW -lncurses
+gcc command.c graphic.c physics.c space.c main.c -o main -lglfw -framework OPENGL -framework GLUT -lGLEW -lncurses; ./main
 
-./gravity
+./main
 ```
 
 Commands:
