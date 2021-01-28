@@ -12,7 +12,6 @@ void applyGravitation(struct Body* a, struct Body* b) {
     a->vy = a->vy + DT * copysign(G * b->mass * py / pp, b->y - a->y);
 }
 
-
 void updatePosition(struct Body* a) {
     a->x = a->x + DT * a->vx;
     a->y = a->y + DT * a->vy;

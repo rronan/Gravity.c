@@ -4,8 +4,6 @@
 #include "headers/space.h"
 #include "headers/graphic.h"
 
-#define NBODIES 9
-
 GLFWwindow* setupWindow() {
     if(!glfwInit()) {
         fprintf( stderr, "Failed to initialize GLFW\n" );

@@ -2,9 +2,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <stdlib.h>
-#include "headers/space.h"
-
-#define NBODIES 9
+#include "../headers/space.h"
 
 const int WIDTH = 828;
 const int HEIGHT = 828;
