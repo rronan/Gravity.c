@@ -12,7 +12,7 @@ int main() {
     int i = 0;
     if (space.ship->exists) init_keyboard();
     while(!glfwWindowShouldClose(window)) {
-        updatePhysics(&space);
+        forwardPhysics(&space);
         i--;
         if (i < 0) {
             if (space.ship->exists) controlPower(&space);

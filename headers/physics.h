@@ -1,11 +1,11 @@
 #ifndef PHYSICS_H
 # define PHYSICS_H
 
-void applyGravitation(struct Body*, struct Body*);
+void forwardGravitation(struct Body*, struct Body*);
 
-void updatePosition(struct Body*);
+void forwardPosition(struct Body*);
 
-void updatePhysics(struct Space*);
+void forwardPhysics(struct Space*);
 
 #endif
 
