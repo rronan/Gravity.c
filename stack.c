@@ -23,11 +23,12 @@ int isEmpty(struct Stack* root)
     return !root;
 }
  
-void push(struct Stack** root, struct Variable* data)
+struct Stack* push(struct Stack** root, struct Variable* data)
 {
+    if (!root) return newStack(data);
     struct Stack* stack = newStack(data);
     stack->next = *root;
-    *root = stack;
+    return stack;
 }
  
 struct Variable* pop(struct Stack** root)
