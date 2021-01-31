@@ -13,11 +13,11 @@ void forwardGravitation(struct Body* a, struct Body* b) {
 }
 
 void forwardPhysics(struct Space* space){
-    for (unsigned long i = 0; i < NBODIES; i++) {
+    for (int i = 0; i < NBODIES; i++) {
         if (space->ship->exists == 1) {
             forwardGravitation(&space->ship->body, space->bodies[i]);
         }
-        for (unsigned long j = 0; j < NBODIES; j++) {
+        for (int j = 0; j < NBODIES; j++) {
             if (i != j) {
                 forwardGravitation(space->bodies[i], space->bodies[j]);
             }

@@ -2,15 +2,15 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
- 
-struct Variable;
 
+struct Space;
+ 
 struct Stack {
-    struct Variable* data;
+    struct Space* data;
     struct Stack* next;
 };
  
-struct Stack* newStack(struct Variable* data)
+struct Stack* newStack(struct Space* data)
 {
     struct Stack* stack = (struct Stack*) malloc(sizeof(struct Stack));
     stack->data = data;
@@ -23,7 +23,7 @@ int isEmpty(struct Stack* root)
     return !root;
 }
  
-struct Stack* push(struct Stack** root, struct Variable* data)
+struct Stack* push(struct Stack** root, struct Space* data)
 {
     if (!root) return newStack(data);
     struct Stack* stack = newStack(data);
@@ -31,20 +31,19 @@ struct Stack* push(struct Stack** root, struct Variable* data)
     return stack;
 }
  
-struct Variable* pop(struct Stack** root)
+struct Space* pop(struct Stack** root)
 {
     if (isEmpty(*root))
         return NULL;
     struct Stack* temp = *root;
     *root = (*root)->next;
-    struct Variable* popped = temp->data;
+    struct Space* popped = temp->data;
     free(temp);
  
     return popped;
 }
  
-struct Variable* peek(struct Stack* root)
-{
+struct Space* peek(struct Stack* root) {
     if (isEmpty(root))
         return NULL;
     return root->data;

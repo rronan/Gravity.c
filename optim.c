@@ -1,21 +1,34 @@
 #include <string.h>
-#include "headers/command.h"
-#include "headers/graphic.h"
-#include "headers/space.h"
+#include <math.h>
 #include "stack.c"
 
+#define NBODIES 2
 
 const int WIDTH = 828;
 const int HEIGHT = 828;
 const double DT = 1;
 const double LR = 1e-3;
+const double G = 1;
 int NSTEPS = 10;
 int NEPOCHS = 10000;
+
+struct Body {
+    double x;
+    double y;
+    double vx;
+    double vy;
+    double mass;
+    double radius;
+};
 
 struct Variable{
     struct Body value;
     struct Body grad;
 };
+
+struct Space{
+    struct Variable* variables[NBODIES];
+}* space;
 
 void printBody(struct Body body){
     printf("    x: %lf\n", body.x);
@@ -37,73 +50,104 @@ void printVariable(struct Variable* variable){
     printf("--------\n");
 }
 
-double computeLossValue(struct Body* a, struct Body* b){
-    double dx = a->x - b->x;
-    double dy = a->y - b->y;
-    double dvx = a->vx - b->vx;
-    double dvy = a->vy - b->vy;
-    return dx * dx + dy * dy + dvx * dvx + dvy * dvy;
+double computeLossValue(struct Space* space, struct Body* targets[NBODIES]){
+    double loss = 0;
+    for (int i=0; i<NBODIES; i++){
+        double dx = space->variables[i]->value.x - targets[i]->x;
+        double dy = space->variables[i]->value.y - targets[i]->y;
+        loss += dx * dx + dy * dy;
+    }
+    return loss;
 }
 
-void computeLossGradient(struct Variable* pred, struct Body* target){
-    pred->grad.x = 2 * (pred->value.x - target->x);
-    pred->grad.y = 2 * (pred->value.y - target->y);
-    pred->grad.vx = 2 * (pred->value.vx - target->vx);
-    pred->grad.vy = 2 * (pred->value.vy - target->vy);
-    pred->grad.radius = 0;
-    pred->grad.mass = 0;
+void computeLossGradient(struct Space* pred, struct Body* target[NBODIES]){
+    for (int i=0; i<NBODIES; i++) {
+        pred->variables[i]->grad.x = 2 * (pred->variables[i]->value.x - target[i]->x);
+        pred->variables[i]->grad.y = 2 * (pred->variables[i]->value.y - target[i]->y);
+        pred->variables[i]->grad.vx = 0;
+        pred->variables[i]->grad.vy = 0;
+        pred->variables[i]->grad.radius = 0;
+        pred->variables[i]->grad.mass = 0;
+    }
 }
 
-void forwardPhysics(struct Variable* a) {
-    a->value.x += DT * a->value.vx;
-    a->value.y += DT * a->value.vy;
+void forwardGravitation(struct Body* a, struct Body* b) {
+    double px = pow(a->x - b->x, 2);
+    double py = pow(a->y - b->y, 2);
+    double pp = pow(px + py, 2);
+    a->vx = a->vx + DT * copysign(G * b->mass * px / pp, b->x - a->x);
+    a->vy = a->vy + DT * copysign(G * b->mass * py / pp, b->y - a->y);
 }
 
-struct Variable* backwardPhysics(struct Variable* a, struct Variable* b) {
+void forwardPhysics(struct Space* space){
+    for (int i=0; i<NBODIES; i++) {
+        for (int j=0; j < NBODIES; j++) {
+            if (i != j) forwardGravitation(&space->variables[i]->value, &space->variables[j]->value);
+        }
+        space->variables[i]->value.x += DT * space->variables[i]->value.vx;
+        space->variables[i]->value.y += DT * space->variables[i]->value.vy;
+    };
+}
+
+void backwardGravitation(struct Variable* a, struct Variable* b) {
     // g(f(x))' = g'(f(x))*f'(x)
-    a->grad.x = b->grad.x;
-    a->grad.y = b->grad.y;
-    a->grad.vx = b->grad.vx;
-    a->grad.vy = b->grad.vy;
-    a->grad.radius = b->grad.radius;
-    a->grad.mass = b->grad.mass;
+    double px = pow(a->x - b->x, 2);
+    double py = pow(a->y - b->y, 2);
+    double pp = pow(px + py, 2);
+    a->gradient->x = 
+    a->vx = a->vx + DT * copysign(G * b->mass * px / pp, b->x - a->x);
+    a->vy = a->vy + DT * copysign(G * b->mass * py / pp, b->y - a->y);
+}
+
+struct Space* backwardPhysics(struct Space* a, struct Space* b) {
+    // g(f(x))' = g'(f(x))*f'(x)
+    for (int i=0; i<NBODIES; i++) {
+        for (int j=0; j < NBODIES; j++) {
+            if (i != j) forwardGravitation(&space->variables[i]->value, &space->variables[j]->value);
+        }
+        space->variables[i]->value.x += DT * space->variables[i]->value.vx;
+        space->variables[i]->value.y += DT * space->variables[i]->value.vy;
+    };
     return a;
 }
 
+void learningStep(struct Space* space) {
+    for (int i=0; i<NBODIES; i++) {
+        space->variables[i]->value.x -= LR * space->variables[i]->grad.x;
+        space->variables[i]->value.y -= LR * space->variables[i]->grad.y;
+        space->variables[i]->value.vx -= LR * space->variables[i]->grad.vx;
+        space->variables[i]->value.vy -= LR * space->variables[i]->grad.vy;
+    }
+}
 
 int main() {
-    struct Body target = {
-        .x = 0,
-        .y = 0,
-        .vx = -100,
-        .vy = -100,
-        .mass = 0,
-        .radius = 0,
+    struct Body* targets[NBODIES];
+    targets[0] = &(struct Body){.x=WIDTH / 2, .y=0, .vx=0, .vy=0, .mass=0, .radius=0};
+    targets[1] = &(struct Body){.x=WIDTH / 2, .y=0, .vx=0, .vy=0, .mass=0, .radius=0};
+    space->variables[0] = &(struct Variable){
+        .value = {.x=WIDTH * 0.9, .y=HEIGHT/2, .vx=-100, .vy=0, .mass=0, .radius=0},
+        .grad = {.x=0, .y=0, .vx=0, .vy=0, .mass=0, .radius=0}
     };
-    struct Variable* variable = &(struct Variable){
-        .value = {.x=HEIGHT/2, .y=WIDTH/2, .vx=0, .vy=-10, .mass=0, .radius=0},
+    space->variables[1] = &(struct Variable){
+        .value = {.x=WIDTH * 0.1, .y=HEIGHT/2, .vx=100, .vy=0, .mass=0, .radius=0},
         .grad = {.x=0, .y=0, .vx=0, .vy=0, .mass=0, .radius=0}
     };
     struct Stack* stack = NULL;
     for (int i=0; i<NEPOCHS; i++) {
         for (int j=0; j<NSTEPS; j++) {
-            struct Variable* cp = malloc(sizeof(struct Variable));
-            memcpy(cp, variable, sizeof(struct Variable));
+            struct Space* cp = malloc(sizeof(struct Space));
+            memcpy(cp, space, sizeof(struct Space));
             stack = push(&stack, cp);
-            forwardPhysics(variable);
+            forwardPhysics(space);
         }
-        double lossValue = computeLossValue(&variable->value, &target);
+        double lossValue = computeLossValue(space, targets);
         printf("final loss: %lf\n", lossValue);
-        computeLossGradient(variable, &target);
-        while (!isEmpty(stack)) {
-            variable = backwardPhysics(pop(&stack), variable);
+        computeLossGradient(space, targets);
+        while (!isEmpty(stack)){
+            space = backwardPhysics(pop(&stack), space);
         }
-        variable->value.x -= LR * variable->grad.x;
-        variable->value.y -= LR * variable->grad.y;
-        variable->value.vx -= LR * variable->grad.vx;
-        variable->value.vy -= LR * variable->grad.vy;
     }
-    printVariable(variable);
+    for (int i=0; i<NBODIES; i++) printVariable(space->variables[i]);
     return 1;
 }
 

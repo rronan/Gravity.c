@@ -1,8 +1,6 @@
 #ifndef SPACE_H
 # define SPACE_H
 
-#define NBODIES 1
-
 extern const int WIDTH;
 
 extern const int HEIGHT;
