@@ -7,9 +7,9 @@
 
 const int WIDTH = 828;
 const int HEIGHT = 828;
-const double DT = 1;
+const double DT = 0.1;
 const double LR = 1e-3;
-int NSTEPS = 10;
+int NSTEPS = 100;
 int NEPOCHS = 10000;
 
 struct Variable{
@@ -61,8 +61,8 @@ void forwardPhysics(struct Variable* a) {
 
 struct Variable* backwardPhysics(struct Variable* a, struct Variable* b) {
     // g(f(x))' = g'(f(x))*f'(x)
-    a->grad.x = b->grad.x;
-    a->grad.y = b->grad.y;
+    a->grad.x = b->grad.x + b->grad.vx * DT;
+    a->grad.y = b->grad.y + b->grad.vy * DT;
     a->grad.vx = b->grad.vx;
     a->grad.vy = b->grad.vy;
     a->grad.radius = b->grad.radius;
@@ -93,7 +93,7 @@ int main() {
             forwardPhysics(variable);
         }
         double lossValue = computeLossValue(&variable->value, &target);
-        printf("final loss: %lf\n", lossValue);
+        printf("final loss: %lf\r", lossValue);
         computeLossGradient(variable, &target);
         while (!isEmpty(stack)) {
             variable = backwardPhysics(pop(&stack), variable);
@@ -103,6 +103,7 @@ int main() {
         variable->value.vx -= LR * variable->grad.vx;
         variable->value.vy -= LR * variable->grad.vy;
     }
+    printf("\n");
     printVariable(variable);
     return 1;
 }
