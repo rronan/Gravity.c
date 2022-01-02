@@ -17,7 +17,7 @@ int main() {
         if (i < 0) {
             if (space.ship->exists) controlPower(&space);
             drawSpace(window, &space);
-            i = 4000;
+            i = 1000;
         }
     }
     glfwTerminate();

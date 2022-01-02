@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
-#include "headers/space.h"
-#include "headers/graphic.h"
+#include "../headers/space.h"
+#include "../headers/graphic.h"
 
 GLFWwindow* setupWindow() {
     if(!glfwInit()) {

@@ -7,9 +7,10 @@
 void forwardGravitation(struct Body* a, struct Body* b) {
     double px = pow(a->x - b->x, 2);
     double py = pow(a->y - b->y, 2);
-    double pp = pow(px + py, 2);
-    a->vx = a->vx + DT * copysign(G * b->mass * px / pp, b->x - a->x);
-    a->vy = a->vy + DT * copysign(G * b->mass * py / pp, b->y - a->y);
+    double r = pow(px + py, .5);
+    double f = G * b->mass / (r * r);
+    a->vx = a->vx + DT * f * (b->x - a->x) / r;
+    a->vy = a->vy + DT * f * (b->y - a->y) / r;
 }
 
 void forwardPhysics(struct Space* space){

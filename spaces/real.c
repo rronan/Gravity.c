@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <stdlib.h>
-#include "headers/space.h"
+#include "../headers/space.h"
 
 
 const int WIDTH = 828;
