@@ -1,11 +1,9 @@
 #ifndef SPACE_H
 # define SPACE_H
 
-#define NBODIES 2
+#define NBODIES 100
 
-extern const int WIDTH;
-
-extern const int HEIGHT;
+extern const int HW;
 
 extern const double G;
 
@@ -16,22 +14,16 @@ extern const double POWER;
 struct Body {
     double x;
     double y;
+    double z;
     double vx;
     double vy;
+    double vz;
     double mass;
     double radius;
 };
 
-struct Ship {
-    struct Body body;
-    double ax;
-    double ay;
-    int exists;
-};
-
 struct Space {
     struct Body* bodies[NBODIES];
-    struct Ship* ship;
 };
 
 void setSpace(struct Space*);
