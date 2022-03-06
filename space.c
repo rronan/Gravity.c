@@ -7,8 +7,8 @@
 #include <time.h>
 
 const double R = 200;
-const double V = 200;
-const double G = 1e4;
+const double V = 100;
+const double G = 1e5;
 const double DT = 1e-4;
 
 void setSpace(struct Space* space){
@@ -20,10 +20,12 @@ void setSpace(struct Space* space){
     while (i < NBODIES) {
         double x = (rand() * 2 - 1) * R / (double)RAND_MAX;
         double y = (rand() * 2 - 1) * R / (double)RAND_MAX;
-        double z = (rand() * 2 - 1) * R / (double)RAND_MAX;
+        /* double z = (rand() * 2 - 1) * R / (double)RAND_MAX; */
+        double z = 0;
         double vx = (rand() * 2 - 1) * V / (double)RAND_MAX;
         double vy = (rand() * 2 - 1) * V / (double)RAND_MAX;
-        double vz = (rand() * 2 - 1) * V / (double)RAND_MAX;
+        /* double vz = (rand() * 2 - 1) * V / (double)RAND_MAX; */
+        double vz = 0;
         if ((x * x + y * y + z * z) <= R * R) {
             space->bodies[i] = (struct Body*)malloc(sizeof(struct Body));
             space->bodies[i]->x = x;

@@ -1,7 +1,7 @@
 #ifndef SPACE_H
 # define SPACE_H
 
-#define NBODIES 3
+#define NBODIES 100
 
 extern const double G;
 extern const double DT;

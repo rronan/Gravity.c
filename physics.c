@@ -5,15 +5,18 @@
 #include "headers/space.h"
 #include <stdio.h>
 
+const float DAMPING  = 1 - 1e-7;
+const float SOFTENING = 10;
+
 void forwardGravitation(struct Body* a, struct Body* b) {
     double px = pow(a->x - b->x, 2);
     double py = pow(a->y - b->y, 2);
     double pz = pow(a->z - b->z, 2);
-    double r = pow(px + py + pz, .5);
+    double r = pow(px + py + pz + SOFTENING, .5);
     double f = G * b->mass / (r * r);
-    a->vx = a->vx + DT * f * (b->x - a->x) / r;
-    a->vy = a->vy + DT * f * (b->y - a->y) / r;
-    a->vz = a->vz + DT * f * (b->z - a->z) / r;
+    a->vx = (a->vx + DT * f * (b->x - a->x) / r) * DAMPING;
+    a->vy = (a->vy + DT * f * (b->y - a->y) / r) * DAMPING;
+    a->vz = (a->vz + DT * f * (b->z - a->z) / r) * DAMPING;
 }
 
 void forwardPhysics(struct Space* space){
