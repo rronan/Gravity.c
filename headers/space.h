@@ -1,14 +1,10 @@
 #ifndef SPACE_H
 # define SPACE_H
 
-#define NBODIES 100
-
-extern const int HW;
+#define NBODIES 3
 
 extern const double G;
-
 extern const double DT;
-
 extern const double POWER;
 
 struct Body {

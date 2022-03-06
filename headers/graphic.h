@@ -6,12 +6,19 @@
 
 struct Body;
 struct Space;
+struct Camera {
+    double hw;
+    /* double translation[3]; */
+    /* double rotation[3][3]; */
+};
 
 GLFWwindow* setupWindow();
 
-void drawBody(struct Body*);
+void drawBody(struct Body*, struct Camera*);
 
-void drawSpace(GLFWwindow*, struct Space*);
+void drawSpace(GLFWwindow*, struct Space*, struct Camera*);
+
+void setCamera(struct Camera* camera);
 
 #endif
 
